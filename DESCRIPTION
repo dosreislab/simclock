@@ -1,0 +1,12 @@
+Package: simclock
+Type: Package
+Title: Simulate trees under relaxed clocks
+Version: 0.1.0
+Author: Mario dos Reis
+Maintainer: Mario dos Reis <mariodosreis@gmail.com>
+Description: Simulate trees under the strict and relaxed clock models including
+    the independent-log normal and geometric Brownian modtion models.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0
