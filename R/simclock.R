@@ -59,21 +59,22 @@ relaxed.tree <- function(tree, model, r, s2) {
 }
 
 .sim.gmbRY07 <- function(tree, r, s2) {
-  nb <- tree$Nnode
+  #nb <- tree$Nnode
+  nb <- length(tree$edge.length)
   nt <- length(tree$tip.label)
   tree$edge.length <- tree$edge.length / 2
   rv <- numeric(nb)
   Sig <- matrix(0, ncol=2, nrow=2)
 
-  for (node in (nt+1):(nt+nb)) {
+  for (node in (nt+1):(nb+1)) {
     dad <- which(tree$edge[,2] == node)
     if (length(dad) == 0) {  # I'm the root!
       ta <- 0  # ancestral time
-      ra <- r  # ancestral rate
+      ya <- log(r) # root rate
     }
     else {
       ta <- tree$edge.length[dad]
-      ra <- rv[node - nb]
+      ya <- rv[dad]
     }
 
     desc <- which(tree$edge[,1] == node)
@@ -81,12 +82,25 @@ relaxed.tree <- function(tree, model, r, s2) {
     tl <- tree$edge.length[desc[1]]
     tr <- tree$edge.length[desc[2]]
 
-    mu <- c(ra - (ta + tl) * s2/2, ra - (ta + tr) * s2/2)
+    mu <- c(ya - (ta + tl) * s2/2, ya - (ta + tr) * s2/2)
     diag(Sig) <- c(ta + tl, ta + tr) * s2
     Sig[1,2] <- Sig[2,1] <- ta * s2
 
     rr <- MASS::mvrnorm(1, mu, Sig)
     rv[desc[1]] <- rr[1]; rv[desc[2]] <- rr[2]
+    #print(c(node, exp(c(ya, rr))))
   }
   return (exp(rv))
+}
+
+#' Calculate quantiles of GBM process
+#' @export
+gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
+  pps <- qnorm(p, mean=log(ra) - t*s2/2, sd=sqrt(s2 * t))
+  if (log) {
+    return (pps)
+  }
+  else {
+    return (exp(pps))
+  }
 }
