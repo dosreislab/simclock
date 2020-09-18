@@ -19,18 +19,60 @@
 #'   from the appropriate distribution. The branch lengths in \code{tree} are
 #'   then multiplied by the corresponding rates.
 #'
-#' @references Yang and Rannala (2007) \emph{Inferring speciation times under an
-#'   episodic molecular clock.} Systematic Biology, 56:453-466.
+#' @references
+#'   Drummond et al. (2006) \emph{Relaxed phylogenetics and dating with
+#'   confidence.} PLoS Biology, 4(5): e88.
+#'
+#'   Yang and Rannala (2007) \emph{Inferring speciation times under an
+#'   episodic molecular clock.} Systematic Biology, 56: 453-466.
 #'
 #' @return An object of class phylo with branch lengths in substitutions per
 #'   site.
 #'
+#' @examples
+#' require(ape)
+#' par(mfrow=c(2,3))
+#'
+#' data(pri10s)
+#' # Simulate using autocorrelated log-normal rates on a primate phylogeny:
+#' tt <- relaxed.tree(pri10s, model="gbm", r=.04e-2, s2=.26e-2) # s2=.26
+#'
+#' # The relaxed tree (branch lengths are in substitutions per site):
+#' plot(tt, main="Relaxed primate tree (subs per site)")
+#'
+#' # The ultrametric timetree of Primates used in the simulation:
+#' plot(pri10s, main="Primates timetree (Ma)")
+#' axisPhylo() # Time unit in 1 Ma.
+#'
+#' # Plot the branch lengths for both trees against each other:
+#' plot(pri10s$edge.length, tt$edge.length,
+#' xlab="Branch lengths (in units of 1 Ma)", ylab="Branch lengths (subs per site)")
+#' abline(0, .04e-2) # the slope is the substitution rate, r
+#'
+#' data(flu289s)
+#' # Simulate using independent log-normal rates on an influenza H1N1 phylogeny:
+#' tt2 <- relaxed.tree(flu289s, model="iln", r=.15e-2, s2=.45)
+#'
+#' # The relaxed tree of influenza:
+#' plot(tt2, show.tip.label=FALSE, main="Relaxed influenza tree (subs per site)")
+#'
+#' # The timetree of Influenza (not ultrametric):
+#' plot(flu289s, show.tip.label=FALSE, main="Influenza H1N1 timetree (y)")
+#' axisPhylo(root.time=1907.35, backward=FALSE) # Time unit in 1 y.
+#'
+#' # Plot the branch lengths:
+#' plot(flu289s$edge.length, tt2$edge.length,
+#' xlab="Branch lengths (in units of 1 y)", ylab="Branch lengths (subs per site)")
+#' abline(0, .15e-2) # the slope is the substitution rate, r
+#'
 #' @author Mario dos Reis
 #'
 #' @export
+# TODO: add indpendent gamma rates model.
 relaxed.tree <- function(tree, model, r, s2) {
   tt <- tree
   nb <- length(tt$edge.length)
+  model <- match.arg(model, c("clk", "iln", "gbm_RY07"))
 
   if (!ape::is.rooted(tt)) {
     stop("tree must be rooted")
