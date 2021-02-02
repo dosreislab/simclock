@@ -9,3 +9,71 @@ with branch lengths in substitutions per site under the desired clock model.
 The tree in substitutions per site can then be used with other software
 packages (such as Evolver or Seq-Gen) to generate simulated sequence 
 alignments.
+
+Example
+========
+
+File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use this tree to simulate a molecular alignment using the GBM (autocorrelated) rates model. To do this example, you need to have installed the `ape` R package, and the Evolver program (from the PAML software package). You also need to know how to use the command line or terminal. Copy all the files in the `misc/` over to a new directory of your choosing and start R in this new directory.
+
+```
+require(ape)
+tt <- read.tree("pri10s.tree")
+
+# The primate timetree:
+plot(tt)
+```
+
+The tree above has branch lengths in millions of years. We will now simulate a relaxed tree with branch lengths in units of substitutions per site. The mean mutation rate will be 4e-4 substitutions per site per year, and the diffusion rate will be 2.6e-3.
+
+```
+reltt <- relaxed.tree(tt, model="gbm", r=.04e-2, s2=.26e-2)
+plot(reltt)
+write.tree(reltt, file="pri10s-relaxed.tree")
+```
+
+File `MCbase.dat` has the parameters required by Evolver to simulate the sequence alignment, except for the tree. Using your favorite text editor, open this file. The file will look something like this (see PAML's documentation for full details on the file's format):
+
+```
+ 0     * 0,1:seqs or patterns in paml format (mc.paml) format ...
+ -1   * random number seed (odd number)
+
+10 1000 1  * <# seqs>  <# nucleotide sites>  <# replicates>
+-1         * <tree length, use -1 if tree below has absolute branch lengths>
+
+* SIMULATED RELAXED TREE GOES HERE
+
+7          * model: 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85, 5:T92, 6:TN93, 7:REV
+0.88892  0.03190  0.00001  0.07102  0.02418 * kappa or rate parameters in model
+0.2500  5     * <alpha>  <#categories for discrete gamma>
+
+0.25318  0.32894  0.31196  0.10592    * base frequencies
+  T        C        A        G
+```
+
+Open file `pri10s-relaxed.tree`, which contains the tree we just simulated, and copy the tree into the `MCbase.dat` file, so that it looks something like this (your branch lengths may look different because it is a random simulaiton):
+
+```
+ 0     * 0,1:seqs or patterns in paml format (mc.paml) ...
+ -1   * random number seed (odd number)
+
+10 1000 1  * <# seqs>  <# nucleotide sites>  <# replicates>
+-1         * <tree length, use -1 if tree below has absolute branch lengths>
+
+(Tree_shrew:0.06045474241,((Bushbaby:0.02886311866,Mouse_lemur:0.01663566402):0.007803769466,(Tarsier:0.02621398983,(Marmoset:0.01010700438,(Rhesus:0.01145630454,(Orangutan:0.006589005919,(Gorilla:0.003915870165,(Chimp:0.003059385907,Human:0.003492534071):0.0009415776338):0.003288254269):0.003757859822):0.003802887905):0.009319410718):0.001770574892):0.00930836744);
+
+7          * model: 0:JC69, 1:K80, 2:F81, 3:F84, 4:HKY85, 5:T92, 6:TN93, 7:REV
+0.88892  0.03190  0.00001  0.07102  0.02418 * kappa or rate parameters in model
+0.2500  5     * <alpha>  <#categories for discrete gamma>
+
+0.25318  0.32894  0.31196  0.10592    * base frequencies
+  T        C        A        G
+```
+
+In a terminal, while inside the same directory containing the `MCbase.dat` file, type
+
+```
+evolver 5 MCbase.dat
+```
+
+If the command above does not work, you either don't have PAML installed, or you don't have the PAML programs in your system's PATH variable (check PAML's website for details). If successful, Evolver will generate a file called `mc.paml` containing the simulated nucleotide alignment. Evolver traverses the tree and simulates mutations as the sequences evolve along the branches.
+
