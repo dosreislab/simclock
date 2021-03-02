@@ -9,4 +9,4 @@ Description: Simulate trees under the strict and relaxed clock models including
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1

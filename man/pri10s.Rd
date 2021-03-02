@@ -4,7 +4,9 @@
 \name{pri10s}
 \alias{pri10s}
 \title{A timetree of 10 primate species}
-\format{An object of class \code{phylo} of length 4.}
+\format{
+An object of class \code{phylo} of length 4.
+}
 \usage{
 pri10s
 }

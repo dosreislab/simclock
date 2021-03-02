@@ -109,6 +109,6 @@ References
 
 * Rannala and Yang (2007) Inferring speciation times under an episodic molecular
 clock. Systematic Biology, 56: 453-466.  
-* Yang, Z. 2007. PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular
+* Yang, Z. (2007). PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular
 Biology and Evolution 24: 1586-1591.  
 
