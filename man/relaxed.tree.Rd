@@ -43,7 +43,7 @@ par(mfrow=c(2,3))
 
 data(pri10s)
 # Simulate using autocorrelated log-normal rates on a primate phylogeny:
-tt <- relaxed.tree(pri10s, model="gbm", r=.04e-2, s2=.26e-2) # s2=.26
+tt <- relaxed.tree(pri10s, model="gbm", r=.04e-2, s2=.26e-2)
 
 # The relaxed tree (branch lengths are in substitutions per site):
 plot(tt, main="Relaxed primate tree (subs per site)")
@@ -54,7 +54,7 @@ axisPhylo() # Time unit in 1 Ma.
 
 # Plot the branch lengths for both trees against each other:
 plot(pri10s$edge.length, tt$edge.length,
-xlab="Branch lengths (in units of 1 Ma)", ylab="Branch lengths (subs per site)")
+xlab="Branch lengths (Million years)", ylab="Branch lengths (subs per site)")
 abline(0, .04e-2) # the slope is the substitution rate, r
 
 data(flu289s)
@@ -70,7 +70,7 @@ axisPhylo(root.time=1907.35, backward=FALSE) # Time unit in 1 y.
 
 # Plot the branch lengths:
 plot(flu289s$edge.length, tt2$edge.length,
-xlab="Branch lengths (in units of 1 y)", ylab="Branch lengths (subs per site)")
+xlab="Branch lengths (years)", ylab="Branch lengths (subs per site)")
 abline(0, .15e-2) # the slope is the substitution rate, r
 
 }

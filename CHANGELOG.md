@@ -4,6 +4,11 @@ Important changes to this project will be documented in this file.
 We try to follow [Keep a Changelog](https://keepachangelog.com),
 and we use [Semantic Versioning](https://semver.org).
 
+## [0.1.3] - 2021-03-09
+### Added
+- Function `correlated.trees` to simulate correlated rates among loci on a
+phylogeny.
+
 ## [0.1.2] - 2020-09-18
 ### Added
 - A new dataset of H1N1 influenza.

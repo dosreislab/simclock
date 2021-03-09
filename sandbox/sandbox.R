@@ -48,6 +48,25 @@ tt <- relaxed.tree(pri10s, model="gbm_RY07", r=.1, s2=1)
 plot(tt)
 plot(tt$edge.length, pri10s$edge.length); abline(0, 1)
 
+# ###############################################
+# Spit tree simulation with clk, iln, and gbm
+# ###############################################
+rm(list=ls())
+
+require(ape)
+data(pri10s)
+
+r <- .1; s2 <- .01
+set.seed(777)
+tc <- relaxed.tree(pri10s, model="clk", r=r)
+ti <- relaxed.tree(pri10s, model="iln", r=r, s2=s2)
+tg <- relaxed.tree(pri10s, model="gbm_RY07", r=r, s2=s2)
+
+par(mfrow=c(1,3))
+plot(pri10s$edge.length, tc$edge.length); abline(0, r)
+plot(pri10s$edge.length, ti$edge.length); abline(0, r)
+plot(pri10s$edge.length, tg$edge.length); abline(0, r)
+
 # ################################################
 # Test rate path with 26s ladder tree
 # ################################################

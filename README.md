@@ -3,16 +3,14 @@ Simclock
 
 A simple R package to simulate phylogenies under relaxed clocks.
 
-Choose a timetree and use the `relaxed.tree` function to generate a phylogeny
+Prepare a timetree and use the `relaxed.tree` function to generate a phylogeny
 with branch lengths in substitutions per site under the desired clock model.
-The package implments the geometric Brownian motion (a.k.a correlated rates) 
+The package implments the geometric Brownian motion (a.k.a correlated rates)
 and independent log-normal rates models from Rannala and Yang (2007).
 
 The tree in substitutions per site can then be used with other software
-packages (such as Evolver or Seq-Gen) to generate simulated sequence 
-alignments.
+packages (such as Evolver or Seq-Gen) to simulate sequence alignments.
 
-Example
 ========
 
 File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use
@@ -111,4 +109,3 @@ References
 clock. Systematic Biology, 56: 453-466.  
 * Yang, Z. (2007). PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular
 Biology and Evolution 24: 1586-1591.  
-
