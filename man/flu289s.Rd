@@ -4,7 +4,9 @@
 \name{flu289s}
 \alias{flu289s}
 \title{A timetree of 289 influenza H1N1 viruses}
-\format{An object of class \code{phylo} of length 4.}
+\format{
+An object of class \code{phylo} of length 4.
+}
 \usage{
 flu289s
 }
