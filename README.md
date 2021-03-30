@@ -1,5 +1,4 @@
-Simclock
-========
+# Simclock
 
 A simple R package to simulate phylogenies under relaxed clocks.
 
@@ -11,7 +10,7 @@ and independent log-normal rates models from Rannala and Yang (2007).
 The tree in substitutions per site can then be used with other software
 packages (such as Evolver or Seq-Gen) to simulate sequence alignments.
 
-========
+## Examples
 
 File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use
 this tree to simulate a molecular alignment using the GBM (autocorrelated) rates
@@ -102,8 +101,30 @@ you can use a program such as `MCMCtree` to infer the divergence times of the 10
 species under the appropriate relaxed clock model, and check whether the
 inferred times match the true times in the original timetree.  
 
-References
-==========
+The package can also simulate trees with correlated rates among loci. This can be
+done with the `correlated.trees` function. For example
+
+```
+ilnc <- correlated.trees(pri10s, model="iln", r=.04e-2, s2=.1, n=3, corr=0.9)
+lapply(ilnc$trees, plot)
+```
+
+will simulate three loci with rate correlation of 0.9 (this is a strong
+correlation). You can write these trees to a file and use them to simulate three
+sequence alignments (one alignment for each tree) but with the proviso that the
+aligned loci have evolved in a correlated fashion.
+
+For example `ilnc$trees[[1]]` will print out the first tree to the screen.
+
+```
+for (i in 1:3) ape::write.tree(ilnc$trees[[i]], file=paste(i, ".tree", sep=""))
+```
+
+This writes the trees to three separate files in Newick format. You can put
+these trees in, for example, MCbase.dat to generate the sequence alignments with
+Evolver.
+
+## References
 
 * Rannala and Yang (2007) Inferring speciation times under an episodic molecular
 clock. Systematic Biology, 56: 453-466.  
