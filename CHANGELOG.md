@@ -4,7 +4,7 @@ Important changes to this project will be documented in this file.
 We try to follow [Keep a Changelog](https://keepachangelog.com),
 and we use [Semantic Versioning](https://semver.org).
 
-## [0.1.4] - 2022--4-06
+## [0.1.4] - 2022-4-06
 ### Fixed
 - Function `.sim.gbmRY07` to simulate GBM rates on multi-furcating trees.
 Thanks to Guillaume for the contributed code.
@@ -28,6 +28,6 @@ phylogeny.
 ## [0.1.0] - 2019-04-25
 ### Added
 - Function `relaxed.tree` to simulate phylogenies under various relaxed-clock
-models. 
+models.
 
 **Tags:** Added, Changed, Deprecated, Removed, Fixed, Security

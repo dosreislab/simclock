@@ -16,8 +16,8 @@ File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use
 this tree to simulate a molecular alignment using the GBM (autocorrelated) rates
 model. To do this example, you need to have installed the `ape` R package, and
 the Evolver program (from the PAML software package). You also need to know how
-to use the command line or terminal. Copy all the files in the `misc/` over to a
-new directory of your choosing and start R in this new directory.
+to use the command line or terminal. Copy all the files in the `misc/` directory
+over to a new directory of your choosing and start R in this new directory.
 
 ```
 require(ape)
@@ -63,7 +63,7 @@ details on the file's format):
 
 Open file `pri10s-relaxed.tree`, which contains the tree we just simulated, and
 copy the tree into the `MCbase.dat` file, so that it looks something like this
-(your branch lengths may look different because it is a random simulaiton):
+(your branch lengths may look different because it is a random simulation):
 
 ```
  0     * 0,1:seqs or patterns in paml format (mc.paml) ...
