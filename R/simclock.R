@@ -90,20 +90,18 @@ relaxed.tree <- function(tree, model, r, s2) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm_RY07") {
-    rv <- .sim.gmbRY07(tree, r, s2)
+    rv <- .sim.gbmRY07(tree, r, s2)
     tt$edge.length <- tt$edge.length * rv
-    #stop ("gbm_RN07 is not implemented yet")
   }
   return (tt)
 }
 
-.sim.gmbRY07 <- function(tree, r, s2, log=FALSE) {
-  #nb <- tree$Nnode
+.sim.gbmRY07 <- function(tree, r, s2, log=FALSE) {
+  #if( is.multi(tree) ) {warning('Non dichotomic tree')}
   nb <- length(tree$edge.length)
   nt <- length(tree$tip.label)
   tree$edge.length <- tree$edge.length / 2
   rv <- numeric(nb)
-  Sig <- matrix(0, ncol=2, nrow=2)
 
   for (node in (nt+1):(nb+1)) {
     dad <- which(tree$edge[,2] == node)
@@ -117,16 +115,13 @@ relaxed.tree <- function(tree, model, r, s2) {
     }
 
     desc <- which(tree$edge[,1] == node)
-    #left <- desc[1]; right <- desc[2]
-    tl <- tree$edge.length[desc[1]]
-    tr <- tree$edge.length[desc[2]]
+    desc.t <- tree$edge.length[desc]
 
-    mu <- c(ya - (ta + tl) * s2/2, ya - (ta + tr) * s2/2)
-    diag(Sig) <- c(ta + tl, ta + tr) * s2
-    Sig[1,2] <- Sig[2,1] <- ta * s2
+    mu <- ya - (ta + desc.t) * s2/2
+    Sig <- matrix(ta * s2, length(desc), length(desc))
+    diag(Sig) <- (ta + desc.t) * s2
 
-    rr <- MASS::mvrnorm(1, mu, Sig)
-    rv[desc[1]] <- rr[1]; rv[desc[2]] <- rr[2]
+    rv[desc] <- MASS::mvrnorm(1, mu, Sig)
     #print(c(node, exp(c(ya, rr))))
   }
   if (log) {
