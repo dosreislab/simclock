@@ -4,6 +4,11 @@ Important changes to this project will be documented in this file.
 We try to follow [Keep a Changelog](https://keepachangelog.com),
 and we use [Semantic Versioning](https://semver.org).
 
+## [0.1.4] - 2022--4-06
+### Fixed
+- Function `.sim.gbmRY07` to simulate GBM rates on multi-furcating trees.
+Thanks to Guillaume for the contributed code.
+
 ## [0.1.3] - 2021-03-09
 ### Added
 - Function `correlated.trees` to simulate correlated rates among loci on a

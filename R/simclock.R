@@ -96,8 +96,10 @@ relaxed.tree <- function(tree, model, r, s2) {
   return (tt)
 }
 
+# Simulate using the GBM rates of Yang and Rannala (2007, Syst. Biol.)
+# Guillaume fixed the function to allow simulation on multi-furcating trees.
 .sim.gbmRY07 <- function(tree, r, s2, log=FALSE) {
-  #if( is.multi(tree) ) {warning('Non dichotomic tree')}
+
   nb <- length(tree$edge.length)
   nt <- length(tree$tip.label)
   tree$edge.length <- tree$edge.length / 2
