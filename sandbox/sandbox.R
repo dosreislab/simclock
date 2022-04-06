@@ -1,4 +1,21 @@
 # ###############################################
+# Tests with multi-furcating trees and gbm
+# ###############################################
+rm(list=ls())
+
+set.seed(157)
+tt <- ape::read.tree(text = "((a:0.5,b:0.5):0.5,c:0.8);")
+rtt <- simclock::relaxed.tree(tt, model="gbm", r=1, s2=1.2)
+sim.blens <- c(0.3243708, 0.1583958, 0.7181730, 0.6346086)
+all.equal(rtt$edge.length, sim.blens) # should be < 1e-7
+
+mtt <- ape::read.tree(text = "((a:0.5,b:0.5,d:0.3):0.5,c:0.8);")
+rmtt <- simclock::relaxed.tree(mtt, model="gbm", r=1, s2=1.2)
+sim.blens2 <- c(0.4975896, 0.2720016, 0.6193712, 0.4945066, 2.0349189)
+all.equal(rmtt$edge.length, sim.blens2) # should be < 1e-7
+# above should fail with old code
+
+# ###############################################
 # Some test with log-rnorm dist
 # ###############################################
 rm(list=ls())
