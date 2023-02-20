@@ -4,7 +4,7 @@ A simple R package to simulate phylogenies under relaxed clocks.
 
 Prepare a timetree and use the `relaxed.tree` function to generate a phylogeny
 with branch lengths in substitutions per site under the desired clock model.
-The package implments the geometric Brownian motion (a.k.a correlated rates)
+The package implements the geometric Brownian motion (a.k.a correlated rates)
 and independent log-normal rates models from Rannala and Yang (2007).
 
 The tree in substitutions per site can then be used with other software
