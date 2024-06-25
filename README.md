@@ -15,6 +15,8 @@ To install the package use
 devtools::install_github("dosreislab/simclock")
 ```
 
+If you find the package useful in your own research, please cite Panchaksaram et al. (2024).
+
 ## Examples
 
 File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use
@@ -131,7 +133,6 @@ Evolver.
 
 ## References
 
-* Rannala and Yang (2007) Inferring speciation times under an episodic molecular
-clock. Systematic Biology, 56: 453-466.  
-* Yang, Z. (2007). PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular
-Biology and Evolution 24: 1586-1591.  
+* Panchaksaram, Freitas and dos Reis (2024) Bayesian Selection of Relaxed-clock Models: Distinguishing Between Independent and Autocorrelated Rates. bioRxiv.
+* Rannala and Yang (2007) Inferring speciation times under an episodic molecular clock. Systematic Biology, 56: 453-466.  
+* Yang, Z. (2007). PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular Biology and Evolution 24: 1586-1591.  

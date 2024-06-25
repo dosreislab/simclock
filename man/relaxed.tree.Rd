@@ -78,6 +78,10 @@ abline(0, .15e-2) # the slope is the substitution rate, r
 Drummond et al. (2006) \emph{Relaxed phylogenetics and dating with
   confidence.} PLoS Biology, 4(5): e88.
 
+  Panchaksaram et al. (2024) \emph{Bayesian selection of relaxed-clock
+  models: Distinguishing between independent and autocorrelated rates.}
+  bioRxiv.
+
   Yang and Rannala (2007) \emph{Inferring speciation times under an
   episodic molecular clock.} Systematic Biology, 56: 453-466.
 }
