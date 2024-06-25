@@ -10,6 +10,11 @@ and independent log-normal rates models from Rannala and Yang (2007).
 The tree in substitutions per site can then be used with other software
 packages (such as Evolver or Seq-Gen) to simulate sequence alignments.
 
+To install the package use
+```
+devtools::install_github("dosreislab/simclock")
+```
+
 ## Examples
 
 File `misc/pri10s.tree` contains a timetree for 10 primates species. We will use
