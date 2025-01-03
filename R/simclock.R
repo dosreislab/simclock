@@ -25,7 +25,7 @@
 #'
 #'   Panchaksaram et al. (2024) \emph{Bayesian selection of relaxed-clock
 #'   models: Distinguishing between independent and autocorrelated rates.}
-#'   bioRxiv.
+#'   Systematic Biology.
 #'
 #'   Yang and Rannala (2007) \emph{Inferring speciation times under an
 #'   episodic molecular clock.} Systematic Biology, 56: 453-466.
