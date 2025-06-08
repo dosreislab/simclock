@@ -26,7 +26,7 @@ the Evolver program (from the PAML software package). You also need to know how
 to use the command line or terminal. Copy all the files in the `misc/` directory
 over to a new directory of your choosing and start R in this new directory.
 
-```
+```r
 require(ape)
 tt <- read.tree("pri10s.tree")
 
@@ -39,7 +39,7 @@ relaxed tree with branch lengths in units of substitutions per site. The mean
 mutation rate will be 4e-4 substitutions per site per year, and the diffusion
 rate will be 2.6e-3.
 
-```
+```r
 reltt <- relaxed.tree(tt, model="gbm", r=.04e-2, s2=.26e-2)
 plot(reltt)
 write.tree(reltt, file="pri10s-relaxed.tree")
@@ -111,7 +111,7 @@ inferred times match the true times in the original timetree.
 The package can also simulate trees with correlated rates among loci. This can be
 done with the `correlated.trees` function. For example
 
-```
+```r
 ilnc <- correlated.trees(pri10s, model="iln", r=.04e-2, s2=.1, n=3, corr=0.9)
 lapply(ilnc$trees, plot)
 ```
@@ -123,7 +123,7 @@ aligned loci have evolved in a correlated fashion.
 
 For example `ilnc$trees[[1]]` will print out the first tree to the screen.
 
-```
+```r
 for (i in 1:3) ape::write.tree(ilnc$trees[[i]], file=paste(i, ".tree", sep=""))
 ```
 
