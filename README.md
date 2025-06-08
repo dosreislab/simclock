@@ -11,7 +11,8 @@ The tree in substitutions per site can then be used with other software
 packages (such as Evolver or Seq-Gen) to simulate sequence alignments.
 
 To install the package use
-```
+
+```r
 devtools::install_github("dosreislab/simclock")
 ```
 
