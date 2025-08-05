@@ -29,7 +29,7 @@ over to a new directory of your choosing and start R in this new directory.
 
 ```r
 require(ape)
-tt <- read.tree("pri10s.tree")
+tt <- read.tree("misc/pri10s.tree")
 
 # The primate timetree:
 plot(tt)
@@ -41,7 +41,7 @@ mutation rate will be 4e-4 substitutions per site per year, and the diffusion
 rate will be 2.6e-3.
 
 ```r
-reltt <- relaxed.tree(tt, model="gbm", r=.04e-2, s2=.26e-2)
+reltt <- relaxed.tree(tt, model="gbm_RY07", r=.04e-2, s2=.26e-2)
 plot(reltt)
 write.tree(reltt, file="pri10s-relaxed.tree")
 ```
@@ -134,6 +134,6 @@ Evolver.
 
 ## References
 
-* Panchaksaram, Freitas and dos Reis (2024) Bayesian Selection of Relaxed-clock Models: Distinguishing Between Independent and Autocorrelated Rates. Systematic Biology.
+* Panchaksaram, Freitas and dos Reis (2024) Bayesian Selection of Relaxed-clock Models: Distinguishing Between Independent and Autocorrelated Rates. Systematic Biology, 74: 453--466.
 * Rannala and Yang (2007) Inferring speciation times under an episodic molecular clock. Systematic Biology, 56: 453-466.  
 * Yang, Z. (2007). PAML 4: Phylogenetic Analysis by Maximum Likelihood. Molecular Biology and Evolution 24: 1586-1591.  
