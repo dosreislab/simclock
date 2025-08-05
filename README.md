@@ -29,7 +29,7 @@ over to a new directory of your choosing and start R in this new directory.
 
 ```r
 require(ape)
-tt <- read.tree("misc/pri10s.tree")
+tt <- read.tree("pri10s.tree")
 
 # The primate timetree:
 plot(tt)
