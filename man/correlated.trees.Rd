@@ -48,10 +48,10 @@ lapply(ilnc$trees, plot)
 # GBM model:
 # Simulate using autocorrelated log-normal rates on a primate phylogeny,
 # with no correlation among three loci:
-gbm0 <- correlated.trees(pri10s, model="gbm", r=.04e-2, s2=.26e-2, 3, 0)
+gbm0 <- correlated.trees(pri10s, model="gbm_RY07", r=.04e-2, s2=.26e-2, 3, 0)
 lapply(gbm0$trees, plot)
 # Repeat with strong correlation among loci:
-gbmc <- correlated.trees(pri10s, model="gbm", r=.04e-2, s2=.26e-2, 3, 0.9)
+gbmc <- correlated.trees(pri10s, model="gbm_RY07", r=.04e-2, s2=.26e-2, 3, 0.9)
 lapply(gbmc$trees, plot)
 
 
