@@ -116,6 +116,11 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
     rv <- .sim.gbmRY07(tree, r, s2, drift=drift)
     tt$edge.length <- tt$edge.length * rv
   }
+  else if (model == 'ou') {
+    #rv <- .sim.ou(tree, r, s2, drift=drift)
+    rv <- .sim.ou(tree, r, s2, r_opt, theta)
+    tt$edge.length <- tt$edge.length * rv
+  }
   return (tt)
 }
 
@@ -165,7 +170,8 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
 }
 
 
-.sim.ou <- function(tree, r, theta, r_opt, s2, log = FALSE) {
+#.sim.ou <- function(tree, r, theta, r_opt, s2, log=FALSE) {
+.sim.ou <- function(tree, r, s2, r_opt, theta, log=FALSE) {
   # Simulate rate variation under an OU process along a phylogeny
   # tree   : phylo object (ape)
   # r      : root rate
