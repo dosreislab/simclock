@@ -5,19 +5,30 @@
 #' @param r numeric, the mean rate in substitutions per site
 #' @param s2 numeric, the rate "diffusion" parameter for the relaxed clocks
 #'
-#' @details The \code{tree} is assummed to be a timetree. Thus, if all your tip
+#' @details The \code{tree} is assummed to be a timetree. Thus, if all the tip
 #'   species are extant, then \code{tree} must be ultrametric. If \code{tree} is
 #'   not ultrametric then it is assummed you have extinct tips. The \code{tree}
-#'   must be rooted and strictly bifurcating.
+#'   must be rooted.
 #'
-#'   The options for \code{model} are "clk", "iln", and "gbm_RY07", for the
-#'   strict clock, the independent log-normal rates, and the geometric-Brownian
-#'   motion rates, respectively (see Rannala and Yang, 2007). If \code{model ==
-#'   "clk"} the branch lengths of \code{tree} are multiplied by \code{r}. If
-#'   \code{model == "iln"} or \code{model == "gbm_RN07"}, \eqn{n = 2*s - 2}
-#'   rates (one for each branch in the \code{s} species phylogeny) are sampled
-#'   from the appropriate distribution. The branch lengths in \code{tree} are
-#'   then multiplied by the corresponding rates.
+#'   The options for \code{model} are "clk", "iln", "gbm_RY07", and "gbm0", for
+#'   the strict clock, the independent log-normal rates, and the
+#'   geometric-Brownian motion rates, respectively.
+#'
+#'   If \code{model == "clk"} the branch lengths of \code{tree} are multiplied
+#'   by \code{r}. For the other models, \eqn{n} rates (one for each branch in
+#'   the \code{s} species phylogeny) are sampled from the appropriate
+#'   distribution. The branch lengths in \code{tree} are then multiplied by the
+#'   corresponding rates.
+#'
+#'   Model "gbm_RY07" is the the one implemented by Rannala and Yang (2007) with
+#'   the mean of the rate stabilized across the branches of the tree, i.e., this
+#'   version of the GBM process is a martingale. Mean stabilization is achieved
+#'   by adding a drift factor to the Brownian process on the log-rate, and thus
+#'   the process on the log-rate is no longer a martingale. An alternative
+#'   version "gbm0" is provided in which the drift factor is removed. In this
+#'   version the process on the log-rate is now a martingale while the process
+#'   on the rate is not. The drift factor causes collapsation of the rates to
+#'   zero as time goes to infinity.
 #'
 #' @references
 #'   Drummond et al. (2006) \emph{Relaxed phylogenetics and dating with
@@ -25,10 +36,10 @@
 #'
 #'   Panchaksaram et al. (2024) \emph{Bayesian selection of relaxed-clock
 #'   models: Distinguishing between independent and autocorrelated rates.}
-#'   Systematic Biology.
+#'   Systematic Biology, 74: 323--334.
 #'
-#'   Yang and Rannala (2007) \emph{Inferring speciation times under an
-#'   episodic molecular clock.} Systematic Biology, 56: 453-466.
+#'   Rannala and Yang (2007) \emph{Inferring speciation times under an
+#'   episodic molecular clock.} Systematic Biology, 56: 453--466.
 #'
 #' @return An object of class phylo with branch lengths in substitutions per
 #'   site.
@@ -39,7 +50,7 @@
 #'
 #' data(pri10s)
 #' # Simulate using autocorrelated log-normal rates on a primate phylogeny:
-#' tt <- relaxed.tree(pri10s, model="gbm", r=.04e-2, s2=.26e-2)
+#' tt <- relaxed.tree(pri10s, model="gbm_RY07", r=.04e-2, s2=.26e-2)
 #'
 #' # The relaxed tree (branch lengths are in substitutions per site):
 #' plot(tt, main="Relaxed primate tree (subs per site)")
@@ -73,10 +84,10 @@
 #'
 #' @export
 # TODO: add indpendent gamma rates model.
-relaxed.tree <- function(tree, model, r, s2) {
+relaxed.tree <- function(tree, model, r, s2, drift) {
   tt <- tree
   nb <- length(tt$edge.length)
-  model <- match.arg(model, c("clk", "iln", "gbm_RY07"))
+  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full"))
 
   if (!ape::is.rooted(tt)) {
     stop("tree must be rooted")
@@ -94,7 +105,15 @@ relaxed.tree <- function(tree, model, r, s2) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm_RY07") {
-    rv <- .sim.gbmRY07(tree, r, s2)
+    rv <- .sim.gbmRY07(tree, r, s2, drift=0)
+    tt$edge.length <- tt$edge.length * rv
+  }
+  else if (model == "gbm0") {
+    rv <- .sim.gbmRY07(tree, r, s2, drift=0.5*s2)
+    tt$edge.length <- tt$edge.length * rv
+  }
+  else if (model == 'gbm_full') {
+    rv <- .sim.gbmRY07(tree, r, s2, drift=drift)
     tt$edge.length <- tt$edge.length * rv
   }
   return (tt)
@@ -102,7 +121,10 @@ relaxed.tree <- function(tree, model, r, s2) {
 
 # Simulate using the GBM rates of Yang and Rannala (2007, Syst. Biol.)
 # Guillaume fixed the function to allow simulation on multi-furcating trees.
-.sim.gbmRY07 <- function(tree, r, s2, log=FALSE) {
+# Sishuo extended the model to a full GBM with a drift coefficient, representing
+# the non-stochastic change in the process. In gbm_full, RY07 and gbm0 are special
+# cases with the drift equal to 0 and 0.5*s2, respectively.
+.sim.gbmRY07 <- function(tree, r, s2, log=FALSE, drift=0) {
 
   nb <- length(tree$edge.length)
   nt <- length(tree$tip.label)
@@ -123,7 +145,12 @@ relaxed.tree <- function(tree, model, r, s2) {
     desc <- which(tree$edge[,1] == node)
     desc.t <- tree$edge.length[desc]
 
-    mu <- ya - (ta + desc.t) * s2/2
+    # drift == 0 is the YR07 model with stabilised mean (i.e., the gbm
+    # process is forced to be a martingale)
+    # "r" is added to make it accommodate gbm_full
+    # specifically, r = 0, 0.5*s2, user_specified for RY07, gbm0, gbm_full
+    mu <- ya + (drift-s2/2) * (ta + desc.t)
+
     Sig <- matrix(ta * s2, length(desc), length(desc))
     diag(Sig) <- (ta + desc.t) * s2
 
@@ -139,6 +166,7 @@ relaxed.tree <- function(tree, model, r, s2) {
 
 #' Calculate quantiles of GBM process
 #' @export
+# TODO: write documentation
 gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
   pps <- qnorm(p, mean=log(ra) - t*s2/2, sd=sqrt(s2 * t))
   if (log) {
@@ -147,87 +175,4 @@ gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
   else {
     return (exp(pps))
   }
-}
-
-#' Simulate correlated branch lengths among loci on a phylogeny under a relaxed clock
-#'
-#' @param tree an object of class phylo representing a bifurcating phylogeny
-#' @param model character, the relaxed clock model
-#' @param r numeric, the mean rate in substitutions per site
-#' @param s2 numeric, the rate "diffusion" parameter for the relaxed clocks
-#' @param nloci numeric, the number of trees to simulate (one per locus)
-#' @param corr, numeric, the correlation of log rates among loci
-#'
-#' @details A total of \code{nloci} trees are simulated, with the log-rates
-#' for branches across trees having correlation \code{corr}.
-#'
-#' @return A list with two elements: A list of length \code{nloci} of trees of
-#'   class phylo with branch lengths in substitutions per site, and a matrix of
-#'   branch rates for each locus.
-#'
-#' @seealso \link{relaxed.tree} to simulate a single tree.
-#'
-#' @examples
-#' require(ape)
-#' par(mfrow=c(2,3))
-#'
-#' data(pri10s)
-#' # ILN model:
-#' # Simulate using autocorrelated log-normal rates on a primate phylogeny,
-#' # with no correlation among three loci:
-#' iln0 <- correlated.trees(pri10s, model="iln", r=.04e-2, s2=.1, 3, 0)
-#' lapply(iln0$trees, plot)
-#' # Repeat with strong correlation among loci:
-#' ilnc <- correlated.trees(pri10s, model="iln", r=.04e-2, s2=.1, 3, 0.9)
-#' lapply(ilnc$trees, plot)
-#'
-#' # GBM model:
-#' # Simulate using autocorrelated log-normal rates on a primate phylogeny,
-#' # with no correlation among three loci:
-#' gbm0 <- correlated.trees(pri10s, model="gbm", r=.04e-2, s2=.26e-2, 3, 0)
-#' lapply(gbm0$trees, plot)
-#' # Repeat with strong correlation among loci:
-#' gbmc <- correlated.trees(pri10s, model="gbm", r=.04e-2, s2=.26e-2, 3, 0.9)
-#' lapply(gbmc$trees, plot)
-#'
-#'
-#'
-#' @author Mario dos Reis
-#'
-#' @export
-correlated.trees <- function(tree, model, r, s2, nloci, corr) {
-  tt <- tree
-  nb <- length(tt$edge.length)
-  model <- match.arg(model, c("iln", "gbm_RY07"))
-
-  # construct among loci covariance matrix (p x p):
-  R <- matrix(corr, ncol=nloci, nrow=nloci) * s2
-  diag(R) <- s2
-
-  # use Eigen decomposition to simulate correlations
-  eS <- eigen(R, symmetric = TRUE)
-  ev <- eS$values
-
-  # n x p; n: nb; p: nloci
-  lrvm <- matrix(nrow=nb, ncol=nloci)
-
-  for (i in 1:nloci) {
-    if (model == "iln") {
-      lrvm[,i] <- rnorm(nb, 0, 1)
-    } else if (model == "gbm_RY07") {
-      lrvm[,i] <- .sim.gmbRY07(tree, 1, 1, log=TRUE)
-      # NOTE: gmbRY07 needs more testing!
-    }
-  }
-
-  # p x p %*% p x n = p x n
-  rvm <- exp( eS$vectors %*% diag(sqrt(pmax(ev, 0)), nloci) %*% t(lrvm) + log(r) - s2/2 )
-
-  tls <- list()
-  for (i in 1:nloci) {
-    tls[[i]] <- tt
-    tls[[i]]$edge.length <- tt$edge.length * rvm[i,]
-  }
-
-  return(list(trees=tls, rates=rvm))
 }
