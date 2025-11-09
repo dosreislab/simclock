@@ -87,7 +87,7 @@
 relaxed.tree <- function(tree, model, r, s2, drift) {
   tt <- tree
   nb <- length(tt$edge.length)
-  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full"))
+  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full", "ou"))
 
   if (!ape::is.rooted(tt)) {
     stop("tree must be rooted")
@@ -114,6 +114,11 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
   }
   else if (model == 'gbm_full') {
     rv <- .sim.gbmRY07(tree, r, s2, drift=drift)
+    tt$edge.length <- tt$edge.length * rv
+  }
+  else if (model == 'ou') {
+    #rv <- .sim.ou(tree, r, s2, drift=drift)
+    rv <- .sim.ou(tree, r, s2, r_opt, theta)
     tt$edge.length <- tt$edge.length * rv
   }
   return (tt)
@@ -164,6 +169,66 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
   }
 }
 
+
+#.sim.ou <- function(tree, r, theta, r_opt, s2, log=FALSE) {
+.sim.ou <- function(tree, r, s2, r_opt, theta, log=FALSE) {
+  # Simulate rate variation under an OU process along a phylogeny
+  # tree   : phylo object (ape)
+  # r      : root rate
+  # theta  : strength of mean reversion
+  # r_opt  : exponential of the long-term mean (optimal_rate)
+  # s2     : diffusion variance parameter
+  # log    : return on log scale if TRUE
+  
+  nb <- length(tree$edge.length)
+  nt <- length(tree$tip.label)
+  tree$edge.length <- tree$edge.length / 2
+  rv <- numeric(nb)
+
+  for (node in (nt + 1):(nb + 1)) {
+    dad <- which(tree$edge[, 2] == node)
+
+    if (length(dad) == 0) {
+      ## root case
+      tA <- 0
+      yA <- log(r)  # rate at the root
+    } else {
+      tA <- tree$edge.length[dad]
+      yA <- rv[dad]
+    }
+
+    desc <- which(tree$edge[, 1] == node)
+    desc.t <- tree$edge.length[desc]
+    n.desc <- length(desc)
+
+    ## Expected means for descendants
+    # note that 'mu' is diff from .sim.gbmRY07()
+    mu <- log(r_opt)
+    means <- (yA - mu) * exp(-theta * (tA + desc.t)) + mu
+
+    ## Cov matrix: Sigma
+    Sigma <- matrix(NA, n.desc, n.desc)
+    for (i in 1:n.desc) {
+      for (j in 1:n.desc) {
+        if (i == j) {
+          Sigma[i, i] <- (s2 / (2 * theta)) * (1 - exp(-2 * theta * (tA + desc.t[i])))
+        } else {
+          # Cov btwn descendants
+          Sigma[i, j] <- (s2 / (2 * theta)) * 
+            (exp(-theta * (desc.t[i] + desc.t[j])) * (1 - exp(-2 * theta * tA)))
+        }
+      }
+    }
+
+    ## descendant trait values
+    rv[desc] <- MASS::mvrnorm(1, means, Sigma)
+  }
+
+  if (log) return(rv) else return(exp(rv))
+}
+
+
+
 #' Calculate quantiles of GBM process
 #' @export
 # TODO: write documentation
@@ -176,3 +241,4 @@ gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
     return (exp(pps))
   }
 }
+
