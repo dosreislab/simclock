@@ -87,7 +87,7 @@
 relaxed.tree <- function(tree, model, r, s2, drift) {
   tt <- tree
   nb <- length(tt$edge.length)
-  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full", "ou"))
+  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full", "gbm", "ou"))
 
   if (!ape::is.rooted(tt)) {
     stop("tree must be rooted")
@@ -114,7 +114,7 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
     #equivalent to: rv <- .sim.gbm(tree, r, s2, log_drift=0)
     tt$edge.length <- tt$edge.length * rv
   }
-  else if (model == 'gbm_full' || model == 'gbm_f') {
+  else if (model == 'gbm_full' || model == 'gbm') {
     # actually 'gbm' is fine but as the term GBM is often used in prev 
     # molecular clock studies to represent gbm0, 'gbm_full' might be clearer
     rv <- .sim.gbm(tree, r, s2, drift=drift)
