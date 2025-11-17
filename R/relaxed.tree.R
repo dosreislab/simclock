@@ -133,7 +133,7 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
 # Sishuo extended the model to a full GBM with a drift coefficient, representing
 # the non-stochastic change in the process. In gbm_full, RY07 and gbm0 are special
 # cases with the drift equal to 0 and 0.5*s2, respectively.
-.sim.gbm <- function(tree, r, s2, log=FALSE, drift=0, log_drift) {
+.sim.gbm <- function(tree, r, s2, log=FALSE, drift=0, log_drift=NA) {
 
   if(is.numeric(log_drift)){
     drift <- log_drift + 0.5 * s2
