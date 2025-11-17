@@ -105,15 +105,19 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm_RY07") {
-    rv <- .sim.gbmRY07(tree, r, s2, drift=0)
+    rv <- .sim.gbm(tree, r, s2, drift=0)
+    #equivalent to: rv <- .sim.gbm(tree, r, s2, log_drift=-0.5*s2)
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm0") {
-    rv <- .sim.gbmRY07(tree, r, s2, drift=0.5*s2)
+    rv <- .sim.gbm(tree, r, s2, drift=0.5*s2)
+    #equivalent to: rv <- .sim.gbm(tree, r, s2, log_drift=0)
     tt$edge.length <- tt$edge.length * rv
   }
-  else if (model == 'gbm_full') {
-    rv <- .sim.gbmRY07(tree, r, s2, drift=drift)
+  else if (model == 'gbm_full' || model == 'gbm_f') {
+    # actually 'gbm' is fine but as the term GBM is often used in prev 
+    # molecular clock studies to represent gbm0, 'gbm_full' might be clearer
+    rv <- .sim.gbm(tree, r, s2, drift=drift)
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == 'ou') {
@@ -129,7 +133,11 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
 # Sishuo extended the model to a full GBM with a drift coefficient, representing
 # the non-stochastic change in the process. In gbm_full, RY07 and gbm0 are special
 # cases with the drift equal to 0 and 0.5*s2, respectively.
-.sim.gbmRY07 <- function(tree, r, s2, log=FALSE, drift=0) {
+.sim.gbm <- function(tree, r, s2, log=FALSE, drift=0, log_drift) {
+
+  if(is.numeric(log_drift)){
+    drift <- log_drift + 0.5 * s2
+  }
 
   nb <- length(tree$edge.length)
   nt <- length(tree$tip.label)
@@ -229,6 +237,47 @@ relaxed.tree <- function(tree, model, r, s2, drift) {
 
 
 
+# prev gbm func
+.sim.gbmRY07 <- function(tree, r, s2, log=FALSE, drift) {
+
+  nb <- length(tree$edge.length)
+  nt <- length(tree$tip.label)
+  tree$edge.length <- tree$edge.length / 2
+  rv <- numeric(nb)
+
+  for (node in (nt+1):(nb+1)) {
+    dad <- which(tree$edge[,2] == node)
+    if (length(dad) == 0) {  # I'm the root!
+      ta <- 0  # ancestral time
+      ya <- log(r) # root rate
+    }
+    else {
+      ta <- tree$edge.length[dad]
+      ya <- rv[dad]
+    }
+
+    desc <- which(tree$edge[,1] == node)
+    desc.t <- tree$edge.length[desc]
+
+    # drift == TRUE is the YR07 model with stabilised mean (i.e., the gbm
+    # process is forced to be a martingale)
+    if (drift) mu <- ya - (ta + desc.t) * s2/2
+    else mu <- ya
+
+    Sig <- matrix(ta * s2, length(desc), length(desc))
+    diag(Sig) <- (ta + desc.t) * s2
+
+    rv[desc] <- MASS::mvrnorm(1, mu, Sig)
+    #print(c(node, exp(c(ya, rr))))
+  }
+  if (log) {
+    return (rv)
+  } else {
+    return (exp(rv))
+  }
+}
+
+
 #' Calculate quantiles of GBM process
 #' @export
 # TODO: write documentation
@@ -241,4 +290,5 @@ gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
     return (exp(pps))
   }
 }
+
 
