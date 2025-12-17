@@ -84,10 +84,10 @@
 #'
 #' @export
 # TODO: add indpendent gamma rates model.
-relaxed.tree <- function(tree, model, r, s2) {
+relaxed.tree <- function(tree, model, r, s2, drift=0) {
   tt <- tree
   nb <- length(tt$edge.length)
-  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0"))
+  model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full", "gbm", "ou"))
 
   if (!ape::is.rooted(tt)) {
     stop("tree must be rooted")
@@ -105,11 +105,24 @@ relaxed.tree <- function(tree, model, r, s2) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm_RY07") {
-    rv <- .sim.gbmRY07(tree, r, s2, drift=TRUE)
+    rv <- .sim.gbm(tree, r, s2, drift=0)
+    #equivalent to: rv <- .sim.gbm(tree, r, s2, log_drift=-0.5*s2)
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == "gbm0") {
-    rv <- .sim.gbmRY07(tree, r, s2, drift=FALSE)
+    rv <- .sim.gbm(tree, r, s2, drift=0.5*s2)
+    #equivalent to: rv <- .sim.gbm(tree, r, s2, log_drift=0)
+    tt$edge.length <- tt$edge.length * rv
+  }
+  else if (model == 'gbm_full' || model == 'gbm') {
+    # actually 'gbm' is fine but as the term GBM is often used in prev 
+    # molecular clock studies to represent gbm0, 'gbm_full' might be clearer
+    rv <- .sim.gbm(tree, r, s2, drift=drift)
+    tt$edge.length <- tt$edge.length * rv
+  }
+  else if (model == 'ou') {
+    #rv <- .sim.ou(tree, r, s2, drift=drift)
+    rv <- .sim.ou(tree, r, s2, r_opt, theta)
     tt$edge.length <- tt$edge.length * rv
   }
   return (tt)
@@ -117,6 +130,114 @@ relaxed.tree <- function(tree, model, r, s2) {
 
 # Simulate using the GBM rates of Yang and Rannala (2007, Syst. Biol.)
 # Guillaume fixed the function to allow simulation on multi-furcating trees.
+# Sishuo extended the model to a full GBM with a drift coefficient, representing
+# the non-stochastic change in the process. In gbm_full, RY07 and gbm0 are special
+# cases with the drift equal to 0 and 0.5*s2, respectively.
+.sim.gbm <- function(tree, r, s2, log=FALSE, drift=0, log_drift=NA) {
+
+  if(is.numeric(log_drift)){
+    drift <- log_drift + 0.5 * s2
+  }
+
+  nb <- length(tree$edge.length)
+  nt <- length(tree$tip.label)
+  tree$edge.length <- tree$edge.length / 2
+  rv <- numeric(nb)
+
+  for (node in (nt+1):(nb+1)) {
+    dad <- which(tree$edge[,2] == node)
+    if (length(dad) == 0) {  # I'm the root!
+      ta <- 0  # ancestral time
+      ya <- log(r) # root rate
+    }
+    else {
+      ta <- tree$edge.length[dad]
+      ya <- rv[dad]
+    }
+
+    desc <- which(tree$edge[,1] == node)
+    desc.t <- tree$edge.length[desc]
+
+    # drift == 0 is the YR07 model with stabilised mean (i.e., the gbm
+    # process is forced to be a martingale)
+    # "r" is added to make it accommodate gbm_full
+    # specifically, r = 0, 0.5*s2, user_specified for RY07, gbm0, gbm_full
+    mu <- ya + (drift-s2/2) * (ta + desc.t)
+
+    Sig <- matrix(ta * s2, length(desc), length(desc))
+    diag(Sig) <- (ta + desc.t) * s2
+
+    rv[desc] <- MASS::mvrnorm(1, mu, Sig)
+    #print(c(node, exp(c(ya, rr))))
+  }
+  if (log) {
+    return (rv)
+  } else {
+    return (exp(rv))
+  }
+}
+
+
+#.sim.ou <- function(tree, r, theta, r_opt, s2, log=FALSE) {
+.sim.ou <- function(tree, r, s2, r_opt, theta, log=FALSE) {
+  # Simulate rate variation under an OU process along a phylogeny
+  # tree   : phylo object (ape)
+  # r      : root rate
+  # theta  : strength of mean reversion
+  # r_opt  : exponential of the long-term mean (optimal_rate)
+  # s2     : diffusion variance parameter
+  # log    : return on log scale if TRUE
+  
+  nb <- length(tree$edge.length)
+  nt <- length(tree$tip.label)
+  tree$edge.length <- tree$edge.length / 2
+  rv <- numeric(nb)
+
+  for (node in (nt + 1):(nb + 1)) {
+    dad <- which(tree$edge[, 2] == node)
+
+    if (length(dad) == 0) {
+      ## root case
+      tA <- 0
+      yA <- log(r)  # rate at the root
+    } else {
+      tA <- tree$edge.length[dad]
+      yA <- rv[dad]
+    }
+
+    desc <- which(tree$edge[, 1] == node)
+    desc.t <- tree$edge.length[desc]
+    n.desc <- length(desc)
+
+    ## Expected means for descendants
+    # note that 'mu' is diff from .sim.gbmRY07()
+    mu <- log(r_opt)
+    means <- (yA - mu) * exp(-theta * (tA + desc.t)) + mu
+
+    ## Cov matrix: Sigma
+    Sigma <- matrix(NA, n.desc, n.desc)
+    for (i in 1:n.desc) {
+      for (j in 1:n.desc) {
+        if (i == j) {
+          Sigma[i, i] <- (s2 / (2 * theta)) * (1 - exp(-2 * theta * (tA + desc.t[i])))
+        } else {
+          # Cov btwn descendants
+          Sigma[i, j] <- (s2 / (2 * theta)) * 
+            (exp(-theta * (desc.t[i] + desc.t[j])) * (1 - exp(-2 * theta * tA)))
+        }
+      }
+    }
+
+    ## descendant trait values
+    rv[desc] <- MASS::mvrnorm(1, means, Sigma)
+  }
+
+  if (log) return(rv) else return(exp(rv))
+}
+
+
+
+# prev gbm func
 .sim.gbmRY07 <- function(tree, r, s2, log=FALSE, drift) {
 
   nb <- length(tree$edge.length)
@@ -156,6 +277,7 @@ relaxed.tree <- function(tree, model, r, s2) {
   }
 }
 
+
 #' Calculate quantiles of GBM process
 #' @export
 # TODO: write documentation
@@ -168,3 +290,5 @@ gbm_RY07q <- function(p, ra, s2, t, log=FALSE) {
     return (exp(pps))
   }
 }
+
+
