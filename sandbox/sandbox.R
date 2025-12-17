@@ -116,3 +116,61 @@ abline(h=log(ra), lty=2, col="red")
 lines(gbm_RY07q(.025, ra, s2, 0:24, log=TRUE), lty=2)
 lines(gbm_RY07q(.5, ra, s2, 0:24, log=TRUE), lty=2)
 lines(gbm_RY07q(.975, ra, s2, 0:24, log=TRUE), lty=2)
+
+# ###############################################
+# Ornstein-Uhlenbeck process (Sep 2025):
+# ###############################################
+rm(list=ls())
+
+# simulate OU exactly (Gillespie, 1996, Phys. Rev. E):
+# n: number of replicate simulations
+# x0: initial state, mu: stationary mean, sigma2: drift coefficient,
+# theta: attraction force (i.e., tau = 1/theta is relaxation time)
+# xt has mean:
+#  (x0 - mu) * exp(-theta*t) + mu
+# and variance:
+#  sigma2/(2*theta) * (1 - exp(-2*theta*t))
+ou.sim <- function(n, dt, x0=0, mu=0, sigma2=1, theta=1) {
+  mean <- (x0 - mu) * exp(-theta*dt) + mu
+  var <- sigma2/(2*theta) * (1 - exp(-2*theta*dt))
+  return(rnorm(n, mean=mean, sd=sqrt(var)))
+}
+
+# simulate wiggly path:
+# t: path length, n: number of path subdivisions
+ou.path <- function(t, n, x0=0, mu=0, sigma2=1, theta=1) {
+  dt <- t/n
+  x <- numeric(n)
+  x[1] <- x0
+
+  for (i in 2:n) {
+    x[i] = ou.sim(1, dt=dt, x0=x[i-1], mu=mu, sigma2=sigma2, theta=theta)
+  }
+  return(x)
+}
+
+# simulate OU process on a bifurcation (binary tree):
+#           |--------- x2 (t2)
+# x0 -------x1 (t1)
+#           |----------------- x3 (t3)
+ou.tree <- function(t1, t2, t3, x0=0, mu=mu, sigma2=sigma2, theta=theta) {
+  x1 <- ou.sim(1, dt=t1, x0=x0, mu=mu, sigma2=sigma2, theta=theta)
+  x2 <- ou.sim(1, dt=t2, x0=x1, mu=mu, sigma2=sigma2, theta=theta)
+  x3 <- ou.sim(1, dt=t3, x0=x1, mu=mu, sigma2=sigma2, theta=theta)
+  return(c(x1, x2, x3))
+}
+
+# asymptotic variance:
+ou.avar <- function(sigma2=1, theta=1) return (sigma2/(2*theta))
+
+# check asympototic covariance:
+xx <- ou.sim(1e4, dt=100, x0=.5, mu=1, sigma2=2, theta=.5)
+var(xx); ou.avar(2, .5)
+
+# simulate replicate bifurcations:
+x123 <- t(replicate(1e4, ou.tree(1, 2, 3, x0=.5, mu=1, sigma2=2, theta=.5)))
+var(x123)
+
+# check against asymptotic variances
+2/(2*.5) * (1 - exp(-2*.5*c(1,3,4)))
+
