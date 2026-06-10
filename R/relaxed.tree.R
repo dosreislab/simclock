@@ -84,7 +84,7 @@
 #'
 #' @export
 # TODO: add indpendent gamma rates model.
-relaxed.tree <- function(tree, model, r, s2, r_opt=r, drift=0) {
+relaxed.tree <- function(tree, model, r, s2, r_opt=r, drift=0, theta=NULL) {
   tt <- tree
   nb <- length(tt$edge.length)
   model <- match.arg(model, c("clk", "iln", "gbm_RY07", "gbm0", "gbm_full", "gbm", "ou"))
@@ -121,7 +121,7 @@ relaxed.tree <- function(tree, model, r, s2, r_opt=r, drift=0) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == 'ou') {
-    rv <- .sim.ou(tree, r, s2, r_opt, theta=exp(drift))
+    rv <- .sim.ou(tree, r, s2, r_opt, theta=theta)
     tt$edge.length <- tt$edge.length * rv
   }
   return (tt)
