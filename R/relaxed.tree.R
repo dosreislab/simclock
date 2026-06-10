@@ -121,8 +121,7 @@ relaxed.tree <- function(tree, model, r, s2, r_opt=r, drift=0) {
     tt$edge.length <- tt$edge.length * rv
   }
   else if (model == 'ou') {
-    #rv <- .sim.ou(tree, r, s2, drift=drift)
-    rv <- .sim.ou(tree, r, s2, r_opt, theta)
+    rv <- .sim.ou(tree, r, s2, r_opt, theta=exp(drift))
     tt$edge.length <- tt$edge.length * rv
   }
   return (tt)
