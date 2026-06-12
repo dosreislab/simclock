@@ -132,6 +132,21 @@ This writes the trees to three separate files in Newick format. You can put
 these trees in, for example, MCbase.dat to generate the sequence alignments with
 Evolver.
 
+### Additional relaxed-clock examples
+
+`relaxed.tree` also supports OU, full GBM, and the lograte-martingale GBM model:
+
+```r
+## Lograte-martingale GBM (gbm0)
+reltt_gbm0 <- relaxed.tree(pri10s, model="gbm0", r=.04e-2, s2=.26e-2)
+
+## Full GBM with user-specified drift
+reltt_gbm_full <- relaxed.tree(pri10s, model="gbm_full", r=.04e-2, s2=.26e-2, drift=.10e-2)
+
+## OU process (mean reversion on log-rates)
+reltt_ou <- relaxed.tree(pri10s, model="ou", r=.04e-2, s2=.26e-2, r_opt=.05e-2, theta=0.15)
+```
+
 ## References
 
 * Panchaksaram, Freitas and dos Reis (2024) Bayesian Selection of Relaxed-clock Models: Distinguishing Between Independent and Autocorrelated Rates. Systematic Biology, 74: 453--466.
