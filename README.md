@@ -134,17 +134,20 @@ Evolver.
 
 ### Additional relaxed-clock examples
 
-`relaxed.tree` also supports OU, full GBM, and the lograte-martingale GBM model:
+`relaxed.tree` also supports the `gbm0`, `GBM_full`, `LOU`, and `GOU` models:
 
 ```r
 ## Lograte-martingale GBM (gbm0)
 reltt_gbm0 <- relaxed.tree(pri10s, model="gbm0", r=.04e-2, s2=.26e-2)
 
-## Full GBM with user-specified drift
+## Full GBM with user-specified drift (GBM_full)
 reltt_gbm_full <- relaxed.tree(pri10s, model="gbm_full", r=.04e-2, s2=.26e-2, drift=.10e-2)
 
-## OU process (mean reversion on log-rates)
-reltt_ou <- relaxed.tree(pri10s, model="ou", r=.04e-2, s2=.26e-2, r_opt=.05e-2, theta=0.15)
+## LOU process (mean reversion on log-rates)
+reltt_lou <- relaxed.tree(pri10s, model="lou", r=.04e-2, s2=.26e-2, alpha=0.15)
+
+## GOU process (mean reversion on rates)
+reltt_gou <- relaxed.tree(pri10s, model="gou", r=.04e-2, s2=.26e-2, alpha=0.15, theta=.04e-2)
 ```
 
 ## References

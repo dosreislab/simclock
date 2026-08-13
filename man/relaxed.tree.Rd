@@ -4,97 +4,169 @@
 \alias{relaxed.tree}
 \title{Simulate branch lengths on a phylogeny under a relaxed clock}
 \usage{
-relaxed.tree(tree, model, r, s2)
+relaxed.tree(
+  tree,
+  model,
+  r,
+  s2,
+  log_r_opt = log(r),
+  drift = 0,
+  theta = NULL,
+  alpha = NULL
+)
 }
 \arguments{
-\item{tree}{an object of class phylo representing a bifurcating phylogeny}
+\item{tree}{An object of class \code{phylo} representing a rooted phylogeny.}
 
-\item{model}{character, the relaxed clock model}
+\item{model}{Character string specifying the relaxed-clock model.}
 
-\item{r}{numeric, the mean rate in substitutions per site}
+\item{r}{Positive numeric value. For the stochastic autocorrelated models,
+this is the rate at the root.}
 
-\item{s2}{numeric, the rate "diffusion" parameter for the relaxed clocks}
+\item{s2}{Non-negative numeric value giving the diffusion variance
+parameter. For the ILN model, this is the variance of the log-rate.}
+
+\item{log_r_opt}{Finite numeric value giving the long-term mean log-rate
+for the LOU model. The default is \code{log(r)}.}
+
+\item{drift}{Finite numeric drift coefficient for the full GBM model.}
+
+\item{theta}{Finite numeric drift target for the GOU model.}
+
+\item{alpha}{Positive numeric mean-reversion parameter for the LOU and GOU
+models.}
 }
 \value{
-An object of class phylo with branch lengths in substitutions per
-  site.
+An object of class \code{phylo} with branch lengths in substitutions
+  per site.
 }
 \description{
 Simulate branch lengths on a phylogeny under a relaxed clock
 }
 \details{
-The \code{tree} is assummed to be a timetree. Thus, if all the tip
-  species are extant, then \code{tree} must be ultrametric. If \code{tree} is
-  not ultrametric then it is assummed you have extinct tips. The \code{tree}
-  must be rooted.
+The \code{tree} is assumed to be a time tree. Thus, if all tip species are
+extant, then \code{tree} must be ultrametric. If \code{tree} is not
+ultrametric, it is assumed that the tree contains extinct or serially
+sampled tips. The tree must be rooted.
 
-  The options for \code{model} are "clk", "iln", "gbm_RY07", and "gbm0", for
-  the strict clock, the independent log-normal rates, and the
-  geometric-Brownian motion rates, respectively.
+The available models are:
 
-  If \code{model == "clk"} the branch lengths of \code{tree} are multiplied
-  by \code{r}. For the other models, \eqn{n} rates (one for each branch in
-  the \code{s} species phylogeny) are sampled from the appropriate
-  distribution. The branch lengths in \code{tree} are then multiplied by the
-  corresponding rates.
+\itemize{
+  \item \code{"clk"}: strict molecular clock.
+  \item \code{"iln"}: independent lognormal branch rates.
+  \item \code{"gbm_RY07"}: mean-stabilized geometric Brownian motion.
+  \item \code{"gbm0"}: geometric Brownian motion with zero log-rate drift.
+  \item \code{"gbm_full"} or \code{"gbm"}: full geometric Brownian motion
+        with a user-specified drift.
+  \item \code{"lou"}: Ornstein-Uhlenbeck process on the log-rate.
+  \item \code{"gou"}: geometric Ornstein-Uhlenbeck process on the rate.
+}
 
-  Model "gbm_RY07" is the the one implemented by Rannala and Yang (2007) with
-  the mean of the rate stabilized across the branches of the tree, i.e., this
-  version of the GBM process is a martingale. Mean stabilization is achieved
-  by adding a drift factor to the Brownian process on the log-rate, and thus
-  the process on the log-rate is no longer a martingale. An alternative
-  version "gbm0" is provided in which the drift factor is removed. In this
-  version the process on the log-rate is now a martingale while the process
-  on the rate is not. The drift factor causes collapsation of the rates to
-  zero as time goes to infinity.
+If \code{model == "clk"}, the branch lengths of \code{tree} are multiplied
+by \code{r}. For the other models, one rate is simulated for each branch,
+and each temporal branch length is multiplied by its corresponding rate.
+
+Model \code{"gbm_RY07"} is the model implemented by Rannala and Yang (2007),
+with the mean rate stabilized across the branches of the tree. In this
+version, the rate process is a martingale. Mean stabilization is achieved
+through a drift correction of \code{-s2/2} on the log-rate.
+
+In model \code{"gbm0"}, the drift of the log-rate is zero. Consequently,
+the log-rate is a martingale, but the rate itself is not.
+
+For the LOU model, the log-rate \eqn{X_t = \log R_t} follows
+
+\deqn{
+dX_t = \alpha(\mathrm{log\_r\_opt}-X_t)\,dt
+       + \sqrt{s^2}\,dB_t.
+}
+
+Thus, \code{log_r_opt} is the stationary mean of the log-rate. The
+stationary variance of the log-rate is \eqn{s^2/(2\alpha)}.
+
+For the GOU model, the rate follows
+
+\deqn{
+dR_t = \alpha(\theta-\log R_t)R_t\,dt
+       + \sqrt{s^2}R_t\,dB_t.
+}
+
+By Ito's lemma, the log-rate follows
+
+\deqn{
+d\log R_t =
+\alpha\left(\theta-\frac{s^2}{2\alpha}-\log R_t\right)dt
++ \sqrt{s^2}\,dB_t.
+}
+
+Therefore, the stationary mean log-rate under the GOU model is
+
+\deqn{
+\mu = \theta-\frac{s^2}{2\alpha}.
+}
+
+If \code{log_r_opt} denotes the stationary mean log-rate, the equivalent
+GOU parameter is
+
+\deqn{
+\theta=\mathrm{log\_r\_opt}+\frac{s^2}{2\alpha}.
+}
+
+In this parameterization, \code{exp(log_r_opt)} is the stationary median
+and geometric mean rate, rather than the stationary arithmetic mean rate.
 }
 \examples{
+\dontrun{
 require(ape)
-par(mfrow=c(2,3))
 
 data(pri10s)
-# Simulate using autocorrelated log-normal rates on a primate phylogeny:
-tt <- relaxed.tree(pri10s, model="gbm_RY07", r=.04e-2, s2=.26e-2)
 
-# The relaxed tree (branch lengths are in substitutions per site):
-plot(tt, main="Relaxed primate tree (subs per site)")
+# Rannala-Yang geometric Brownian motion:
+tt <- relaxed.tree(
+  pri10s,
+  model = "gbm_RY07",
+  r = 0.04e-2,
+  s2 = 0.26e-2
+)
 
-# The ultrametric timetree of Primates used in the simulation:
-plot(pri10s, main="Primates timetree (Ma)")
-axisPhylo() # Time unit in 1 Ma.
+# LOU model:
+tt_lou <- relaxed.tree(
+  pri10s,
+  model = "lou",
+  r = 0.04e-2,
+  s2 = 0.26e-2,
+  log_r_opt = log(0.05e-2),
+  alpha = 0.5
+)
 
-# Plot the branch lengths for both trees against each other:
-plot(pri10s$edge.length, tt$edge.length,
-xlab="Branch lengths (Million years)", ylab="Branch lengths (subs per site)")
-abline(0, .04e-2) # the slope is the substitution rate, r
+# Equivalent GOU parameterization:
+log_r_opt <- log(0.05e-2)
+alpha <- 0.5
+s2 <- 0.26e-2
 
-data(flu289s)
-# Simulate using independent log-normal rates on an influenza H1N1 phylogeny:
-tt2 <- relaxed.tree(flu289s, model="iln", r=.15e-2, s2=.45)
+theta <- log_r_opt + s2 / (2 * alpha)
 
-# The relaxed tree of influenza:
-plot(tt2, show.tip.label=FALSE, main="Relaxed influenza tree (subs per site)")
-
-# The timetree of Influenza (not ultrametric):
-plot(flu289s, show.tip.label=FALSE, main="Influenza H1N1 timetree (y)")
-axisPhylo(root.time=1907.35, backward=FALSE) # Time unit in 1 y.
-
-# Plot the branch lengths:
-plot(flu289s$edge.length, tt2$edge.length,
-xlab="Branch lengths (years)", ylab="Branch lengths (subs per site)")
-abline(0, .15e-2) # the slope is the substitution rate, r
+tt_gou <- relaxed.tree(
+  pri10s,
+  model = "gou",
+  r = 0.04e-2,
+  s2 = s2,
+  theta = theta,
+  alpha = alpha
+)
+}
 
 }
 \references{
 Drummond et al. (2006) \emph{Relaxed phylogenetics and dating with
-  confidence.} PLoS Biology, 4(5): e88.
+confidence.} PLoS Biology, 4(5): e88.
 
-  Panchaksaram et al. (2024) \emph{Bayesian selection of relaxed-clock
-  models: Distinguishing between independent and autocorrelated rates.}
-  Systematic Biology, 74: 323--334.
+Panchaksaram et al. (2024) \emph{Bayesian selection of relaxed-clock
+models: Distinguishing between independent and autocorrelated rates.}
+Systematic Biology, 74: 323--334.
 
-  Rannala and Yang (2007) \emph{Inferring speciation times under an
-  episodic molecular clock.} Systematic Biology, 56: 453--466.
+Rannala and Yang (2007) \emph{Inferring speciation times under an
+episodic molecular clock.} Systematic Biology, 56: 453--466.
 }
 \author{
 Mario dos Reis
