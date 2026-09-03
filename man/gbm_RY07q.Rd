@@ -2,10 +2,24 @@
 % Please edit documentation in R/relaxed.tree.R
 \name{gbm_RY07q}
 \alias{gbm_RY07q}
-\title{Calculate quantiles of GBM process}
+\title{Calculate quantiles of the Rannala-Yang GBM process}
 \usage{
 gbm_RY07q(p, ra, s2, t, log = FALSE)
 }
+\arguments{
+\item{p}{Numeric vector of probabilities between zero and one.}
+
+\item{ra}{Positive ancestral rate.}
+
+\item{s2}{Non-negative diffusion variance parameter.}
+
+\item{t}{Non-negative elapsed time.}
+
+\item{log}{Logical. If \code{TRUE}, return quantiles on the log scale.}
+}
+\value{
+A numeric vector of quantiles.
+}
 \description{
-Calculate quantiles of GBM process
+Calculate quantiles of the Rannala-Yang GBM process
 }

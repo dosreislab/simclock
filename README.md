@@ -132,6 +132,34 @@ This writes the trees to three separate files in Newick format. You can put
 these trees in, for example, MCbase.dat to generate the sequence alignments with
 Evolver.
 
+### Additional relaxed-clock examples
+
+`relaxed.tree` also supports the `gbm0`, `GBM_full`, `LOU`, and `GOU` models:
+
+```r
+## Lograte-martingale GBM (gbm0)
+reltt_gbm0 <- relaxed.tree(pri10s, model="gbm0", r=.04e-2, s2=.26e-2)
+
+## Full GBM with user-specified drift (GBM_full)
+reltt_gbm_full <- relaxed.tree(pri10s, model="gbm_full", r=.04e-2, s2=.26e-2, drift=.10e-2)
+
+## LOU: mean reversion on log-rates
+log_r_opt <- log(0.05e-2)
+alpha <- 0.5
+s2 <- 0.26e-2
+reltt_lou <- relaxed.tree(pri10s, model="lou", r=.04e-2, s2=s2,
+                          log_r_opt=log_r_opt, alpha=alpha)
+
+## GOU: equivalent mean reversion on rates
+## theta is determined by log_r_opt, alpha, and s2
+theta <- log_r_opt + s2 / (2 * alpha)
+reltt_gou <- relaxed.tree(pri10s, model="gou", r=.04e-2, s2=s2,
+                          theta=theta, alpha=alpha)
+```
+
+For LOU, `log_r_opt` is the stationary mean log-rate. For an equivalent GOU
+process, use `theta = log_r_opt + s2/(2*alpha)`.
+
 ## References
 
 * Panchaksaram, Freitas and dos Reis (2024) Bayesian Selection of Relaxed-clock Models: Distinguishing Between Independent and Autocorrelated Rates. Systematic Biology, 74: 453--466.
